@@ -6,7 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.infrastructure.postgresql import Base
 from typing import TYPE_CHECKING
 
-# 순환참조 
+# 순환참조 (stack over flow 방지 옵션)
 if TYPE_CHECKING:
     from app.models.member_model import Member
 
@@ -18,14 +18,14 @@ class Post(Base):
     id: Mapped[int] = mapped_column(BigInteger, Identity(), primary_key=True)
     post_title: Mapped[str] = mapped_column(Text, nullable=False)
     post_content: Mapped[str] = mapped_column(Text, nullable=False)
-    post_read_count: Mapped[int] = mapped_column(BigInteger)
+    post_read_count: Mapped[int] = mapped_column(BigInteger, default=0)
     
 
-    member_updated_at: Mapped[DateTime] = mapped_column(
+    post_updated_at: Mapped[DateTime] = mapped_column(
         DateTime(timezone=True), 
         default=lambda: datetime.now(KST)
     )
-    member_created_at: Mapped[DateTime] = mapped_column(
+    post_created_at: Mapped[DateTime] = mapped_column(
         DateTime(timezone=True), 
         default=lambda: datetime.now(KST)
     )

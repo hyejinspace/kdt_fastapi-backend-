@@ -33,6 +33,9 @@ AsyncSessionLocal = async_sessionmaker(
 )
 
 # 3. Model은 반드시 Base를 상속받아서 설계해야 ORM이 관리해준다.
+
+
+# Base : 서버가 켜짐과 동시에 이 Base 모델을 상속받은 class 가 있다면 모두 스키마로 만든다
 class Base(DeclarativeBase):
     pass 
 
@@ -41,6 +44,10 @@ async def get_postgresql_db():
     async with AsyncSessionLocal() as db:
         try:
             yield db
+
+        except Exception:
+            db.rollback()
+            raise
 
         finally:
             await db.close()

@@ -19,7 +19,7 @@ class MemberService:
 
     # 회원 이메일 중복 확인
     async def check_duplicate_member(self, member_email: str, member_provider: str) -> None:
-        result = await self.repo.exists_member(member_email, member_provider)
+        result = await self.repo.exists_member_email_and_provider(member_email, member_provider)
 
         if result:
             raise HTTPException(

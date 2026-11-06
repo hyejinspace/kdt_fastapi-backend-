@@ -7,6 +7,7 @@ from app.enums.member_enum import MemberProvider
 from app.infrastructure.postgresql import Base
 from typing import TYPE_CHECKING
 
+# 순환참조 (stack over flow 방지 옵션)
 if TYPE_CHECKING:
     from app.models.post_model import Post
 
