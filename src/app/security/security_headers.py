@@ -6,7 +6,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
 
         # 클릭 재킹 방지
-        response.herders["X-Frame-Options"] = "DENY"
+        response.headers["X-Frame-Options"] = "DENY"
 
         #MIME 스니핑 방지
         response.headers["X-Content-Type-Options"] = "nosniff"

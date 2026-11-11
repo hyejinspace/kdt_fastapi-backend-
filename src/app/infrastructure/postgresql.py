@@ -46,7 +46,7 @@ async def get_postgresql_db():
             yield db
 
         except Exception:
-            db.rollback()
+            await db.rollback()
             raise
 
         finally:

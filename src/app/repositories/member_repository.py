@@ -43,16 +43,6 @@ class MemberRepository: # db에 접근하는 순수함수로 조합하는거에�
 
     # 2. 회원가입
     async def create_member(self, member: MemberCreateDTO):
-        # new_member = {
-        #     "member_email": member.member_email,
-        #     "member_password": member.member_password,
-        #     "member_name": member.member_name,
-        #     "member_age": member.member_age,
-        #     "member_profile": member.member_profile,
-        #     "member_provider": member.member_provider
-        # }
-
-
         # pydantic -> dict
 
         #키 벨류를 딕셔너리로 리턴하게 만들어줌
@@ -67,10 +57,11 @@ class MemberRepository: # db에 접근하는 순수함수로 조합하는거에�
         )
 
         result = await self.db.execute(query)
-        await self.db.commit()
 
         #필요한 값을 리턴(id, email, provider)
         id, member_email, member_provider = result.first()
+        
+        await self.db.commit()
 
         payload = {
             "id": id,

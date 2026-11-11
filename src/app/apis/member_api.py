@@ -3,9 +3,9 @@ from app.services.member_service import get_member_service, MemberService
 from app.enums.member_enum import MemberProvider
 from app.schemas.member_schema import MemberCreateDTO, MemberClaimDTO, MemberUpdateDTO
 from app.schemas.common_schema import ApiResponseDTO
+from app.dependencies.auth_dependencies import get_current_member
 
 router = APIRouter()
-
 
 @router.post(
     "/check-member", 
@@ -24,7 +24,7 @@ async def check_member(
 
 
 @router.post("/join",
-    summary="로컬 회원 가입",
+    summary="회원 가입",
     response_model=ApiResponseDTO,
     responses={
         409: {
@@ -43,9 +43,9 @@ async def join(
     member: MemberCreateDTO, 
     member_service: MemberService = Depends(get_member_service)
 ):
-    pass
-    # provider는 controller 담당
-    member.member_provider = MemberProvider.LOCAL.value
+    if not member.member_provider:
+        member.member_provider = MemberProvider.LOCAL.value
+        
     member_claim: MemberClaimDTO = await member_service.join(member)
 
     return ApiResponseDTO(
@@ -54,7 +54,7 @@ async def join(
         data=member_claim
     )
 
-# 아이디로 회원조회
+
 @router.get(
     "/{id}",
     response_model=ApiResponseDTO,
@@ -70,12 +70,14 @@ async def get_member_by_id(
         data=found_member
     )
 
-# 이메일, 프로바이더로 회원조회
-# 쿼리스트링으로 데이터를 전송(get방식) -> (?key=value&key=value)
+
+# Query(...): 쿼리스트링으로 데이터를 받기, (...):필수
+# get방식 값을 전송하는 방법 -> ?key=value&key=value
 @router.get(
-        "/",
-        summary="회원 정보 조회(메일과 제공자 기반)",
-        response_model=ApiResponseDTO)
+    "/",
+    summary="회원 정보 조회(email, provider)",
+    response_model=ApiResponseDTO
+)
 async def get_member_by_email_and_provider(
     member_email: str = Query(...),
     member_provider: str = Query(...),
@@ -88,24 +90,20 @@ async def get_member_by_email_and_provider(
         data=found_member
     )
 
+
+# "": "/members"
 # @router.get(
-# # 전체 회원 정보 조회
-#         "", 
-#         summary="회원 전체 조회"
-#         )
-# async def get_members(
-#     member_service: MemberService = Depends(get_member_service),
-# ):
-#     members = await member_service.get_all_members()
+#     "",
+#     summary="회원 전체 정보 조회(테스트)",
+#     response_model=ApiResponseDTO
+# )
+# async def get_members(member_service: MemberService = Depends(get_member_service)):
 #     return ApiResponseDTO(
 #         success=True,
 #         message="회원 전체 조회 성공",
-#         # members에서 하나씩 빼 와서 m이라고 부르고 꺼낸 m을 반복 돌려서 list로 넣겠다!
-#         data=[MemberResponseDTO.model_validate(member) for member in members]
+#         data=await member_service.get_members()
 #     )
-# 
 
- # 회원 정보 전체 조회(실무) + 페이지네이션
 @router.get(
     "",
     summary="회원 전체 정보 조회",
@@ -125,7 +123,6 @@ async def get_members(
     )
 
 
-# 회원 정보 수정
 @router.put(
     "/{id}",
     summary="회원 정보 수정",
@@ -157,3 +154,32 @@ async def withdraw(id: int, member_service: MemberService = Depends(get_member_s
         success=True,
         message="회원 탈퇴 완료"
     )
+
+
+
+# axxess_token -> 사용자를 전달하는 서비스
+
+@router.post(
+    "/me",
+    response_model=ApiResponseDTO,
+    summary="Access Token으로 회원정보 조회"
+)
+async def me(
+    current_member: MemberClaimDTO = Depends(get_current_member),
+    member_service: MemberService = Depends(get_member_service)
+):
+    member_id = current_member.id
+    found_member = await member_service.get_member_by_id(member_id)
+
+    return ApiResponseDTO(
+        success=True,
+        message="회원 정보 조회 완료",
+        data=found_member
+    )
+
+
+
+
+
+
+
